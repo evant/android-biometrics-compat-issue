@@ -1,12 +1,13 @@
 package me.tatarka.biometricscompatissue
 
+import androidx.biometric.BiometricPrompt
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
-import androidx.biometrics.BiometricPrompt
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.Executors
 
@@ -35,7 +36,21 @@ class MainActivity : AppCompatActivity() {
                     .setNegativeButtonText("Cancel")
                     .build()
             )
-
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        Log.d("MainActivity", "hasFocus: $hasFocus")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("MainActivity", "On Pause")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainActivity", "On Resume")
     }
 }
