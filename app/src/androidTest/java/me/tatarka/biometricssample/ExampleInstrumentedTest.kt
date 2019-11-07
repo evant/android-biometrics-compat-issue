@@ -1,4 +1,4 @@
-package me.tatarka.biometricscompatissue
+package me.tatarka.biometricssample
 
 import androidx.test.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4

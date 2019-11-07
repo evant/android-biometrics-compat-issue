@@ -1,4 +1,4 @@
-package me.tatarka.biometricscompatissue
+package me.tatarka.biometricssample
 
 import org.junit.Test
 
