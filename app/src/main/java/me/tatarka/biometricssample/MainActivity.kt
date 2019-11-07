@@ -57,8 +57,10 @@ class MainActivity : AppCompatActivity() {
                 window.decorView.viewTreeObserver.addOnWindowFocusChangeListener(object :
                     ViewTreeObserver.OnWindowFocusChangeListener {
                     override fun onWindowFocusChanged(hasFocus: Boolean) {
-                        window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(this)
-                        showBiometricPrompt()
+                        if (hasFocus) {
+                            window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(this)
+                            showBiometricPrompt()
+                        }
                     }
                 })
             }
@@ -86,10 +88,12 @@ class MainActivity : AppCompatActivity() {
                         window.decorView.viewTreeObserver.addOnWindowFocusChangeListener(object :
                             ViewTreeObserver.OnWindowFocusChangeListener {
                             override fun onWindowFocusChanged(hasFocus: Boolean) {
-                                window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(
-                                    this
-                                )
-                                showProgress(false)
+                                if (!hasFocus) {
+                                    window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(
+                                        this
+                                    )
+                                    showProgress(false)
+                                }
                             }
                         })
                     }
