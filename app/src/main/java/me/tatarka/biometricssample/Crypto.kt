@@ -54,6 +54,7 @@ private fun createKeyPair(keyStore: KeyStore) =
                 .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
                 .setKeySize(RSA_KEY_SIZE)
+                .setUserAuthenticationRequired(true)
                 .build()
         )
     }.generateKeyPair()

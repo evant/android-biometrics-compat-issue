@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.launch
+import java.security.GeneralSecurityException
+import java.security.InvalidAlgorithmParameterException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -31,8 +33,16 @@ class MainActivity : AppCompatActivity() {
 
         encrypt.setOnClickListener {
             lifecycleScope.launch {
-                val encryptedData = encrypt(data.text.toString().toByteArray())
-                encrypted.text = Base64.encodeToString(encryptedData, 0)
+                try {
+                    val encryptedData = encrypt(data.text.toString().toByteArray())
+                    encrypted.text = Base64.encodeToString(encryptedData, 0)
+                } catch (e: GeneralSecurityException) {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle("Biometrics Error")
+                        .setMessage(e.message)
+                        .setPositiveButton("Ok", null)
+                        .show()
+                }
             }
         }
     }
@@ -165,6 +175,12 @@ class MainActivity : AppCompatActivity() {
                         .setPositiveButton("Ok", null)
                         .show()
                 }
+            } catch (e: GeneralSecurityException) {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Biometrics Error")
+                    .setMessage(e.message)
+                    .setPositiveButton("Ok", null)
+                    .show()
             }
         }
     }
