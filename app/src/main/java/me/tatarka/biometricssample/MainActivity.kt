@@ -1,13 +1,17 @@
 package me.tatarka.biometricssample
 
+import android.content.Context
+import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
 import android.os.Bundle
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +19,9 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.launch
 import java.security.GeneralSecurityException
 import java.security.InvalidAlgorithmParameterException
+import java.security.KeyException
+import java.security.KeyStore
+import javax.crypto.KeyGenerator
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -50,15 +57,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        // canAuthenticate() will only check for fingerprint enrollment before api 29. This means it
-        // might cause a false-negative on certain devices that have other forms of secure biometrics.
-        // Some options for handling this are:
-        // - Ignore the problem
-        // - Don't check canAuthenticate() and handle errors showing the prompt instead.
-        // - Copy and paste the androidx biometric source into your app and force it to only use
-        //   FingerprintManager pre api 28.
-        if (BiometricManager.from(this).canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
-
+        if (canSecurelyAuthenticate(applicationContext)) {
             // Showing the biometrics prompt will be ignored if the app does not have focus. You may
             // think that this will always be the case if you are resumed, it is not.
             if (hasWindowFocus()) {
@@ -68,7 +67,9 @@ class MainActivity : AppCompatActivity() {
                     ViewTreeObserver.OnWindowFocusChangeListener {
                     override fun onWindowFocusChanged(hasFocus: Boolean) {
                         if (hasFocus) {
-                            window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(this)
+                            window.decorView.viewTreeObserver.removeOnWindowFocusChangeListener(
+                                this
+                            )
                             showBiometricPrompt()
                         }
                     }
@@ -183,6 +184,44 @@ class MainActivity : AppCompatActivity() {
                     .show()
             }
         }
+    }
+}
+
+/**
+ * Checks if we can securely authenticate, i.e. we have secure biometrics hardware and the user can
+ * enroll. [androidx.biometric.BiometricManager.canAuthenticate] is unusable for this for a couple
+ * of reasons:
+ * 1. On api 28 it falls back to [FingerprintManager.hasEnrolledFingerprints] as the system method
+ * does not exist. However, there may still be non-fingerprint biometrics on those devices so it'll
+ * return a false-negative.
+ * 2. On api 29+ it checks for any form of biometrics, not just ones that are 'secure', so we can
+ * get a false-positive.
+ */
+private fun canSecurelyAuthenticate(context: Context): Boolean {
+    if (Build.VERSION.SDK_INT < 23) {
+        return false
+    }
+    if (Build.VERSION.SDK_INT < 28) {
+        // we only have fingerprint, checking if there are any enrolled fingerprints should be enough.
+        return (context.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager).hasEnrolledFingerprints()
+    }
+    try {
+        val keystore = KeyStore.getInstance("AndroidKeyStore")
+        KeyGenerator.getInstance("AES", keystore.provider)
+            .init(
+                KeyGenParameterSpec.Builder("DUMMY_KEY_ALIAS", KeyProperties.PURPOSE_DECRYPT)
+                    .setUserAuthenticationRequired(true)
+                    .build()
+            )
+        return true
+    } catch (e: InvalidAlgorithmParameterException) {
+        // expected error if user isn't enrolled in secure biometrics
+        return false
+    } catch (e: Exception) {
+        // Log unexpected errors, though if there's an issue with the keystore we probably can't use
+        // biometrics anyway.
+        Log.w("BiometricSample", e)
+        return false
     }
 }
 
