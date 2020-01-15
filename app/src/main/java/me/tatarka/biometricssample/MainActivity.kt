@@ -1,7 +1,6 @@
 package me.tatarka.biometricssample
 
 import android.content.Context
-import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
 import android.os.Bundle
 import android.security.keystore.KeyGenParameterSpec
@@ -200,10 +199,6 @@ class MainActivity : AppCompatActivity() {
 private fun canSecurelyAuthenticate(context: Context): Boolean {
     if (Build.VERSION.SDK_INT < 23) {
         return false
-    }
-    if (Build.VERSION.SDK_INT < 28) {
-        // we only have fingerprint, checking if there are any enrolled fingerprints should be enough.
-        return (context.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager).hasEnrolledFingerprints()
     }
     try {
         val keystore = KeyStore.getInstance("AndroidKeyStore")
