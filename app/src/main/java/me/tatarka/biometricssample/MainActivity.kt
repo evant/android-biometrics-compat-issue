@@ -11,6 +11,8 @@ import android.view.View
 import android.view.ViewTreeObserver
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -208,7 +210,9 @@ private fun canSecurelyAuthenticate(context: Context): Boolean {
                     .setUserAuthenticationRequired(true)
                     .build()
             )
-        return true
+        // On some devices (ex: LG G6 running Android 7) this does not throw an exception despite no
+        // fingerprints being enrolled. Check the biometric manager as a fallback.
+        return BiometricManager.from(context).canAuthenticate() == BIOMETRIC_SUCCESS
     } catch (e: InvalidAlgorithmParameterException) {
         // expected error if user isn't enrolled in secure biometrics
         return false
