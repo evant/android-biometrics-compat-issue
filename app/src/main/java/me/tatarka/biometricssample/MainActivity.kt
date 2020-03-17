@@ -144,11 +144,10 @@ class MainActivity : AppCompatActivity() {
                                 }
 
                                 /**
-                                 * If the prompt was canceled we don't want to show an error ourselves
+                                 * If the prompt was canceled by the user we don't want to show an error ourselves
                                  */
                                 fun isCancel(errorCode: Int) =
-                                    errorCode == BiometricPrompt.ERROR_CANCELED
-                                            || errorCode == BiometricPrompt.ERROR_USER_CANCELED
+                                    errorCode == BiometricPrompt.ERROR_USER_CANCELED
                                             || errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON
 
                             }).authenticate(
