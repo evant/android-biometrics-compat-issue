@@ -189,12 +189,8 @@ class MainActivity : AppCompatActivity() {
 
 /**
  * Checks if we can securely authenticate, i.e. we have secure biometrics hardware and the user can
- * enroll. [androidx.biometric.BiometricManager.canAuthenticate] is unusable for this for a couple
- * of reasons:
- * 1. On api 28 it falls back to [FingerprintManager.hasEnrolledFingerprints] as the system method
- * does not exist. However, there may still be non-fingerprint biometrics on those devices so it'll
- * return a false-negative.
- * 2. On api 29+ it checks for any form of biometrics, not just ones that are 'secure', so we can
+ * enroll. [androidx.biometric.BiometricManager.canAuthenticate] is insufficient for this because
+ * on api 29+ it checks for any form of biometrics, not just ones that are 'secure', so we can
  * get a false-positive.
  */
 private fun canSecurelyAuthenticate(context: Context): Boolean {
@@ -209,8 +205,9 @@ private fun canSecurelyAuthenticate(context: Context): Boolean {
                     .setUserAuthenticationRequired(true)
                     .build()
             )
-        // On some devices (ex: LG G6 running Android 7) this does not throw an exception despite no
-        // fingerprints being enrolled. Check the biometric manager as a fallback.
+        // On API 24 & 25 regardless of enrollment, as well as devices on API < 29 that have other
+        // forms of biometrics enrolled eg. Samsung's iris scan, the above will not throw, but
+        // BiometricPrompt will still throw an error when shown. Check the biometric manager as a fallback.
         return BiometricManager.from(context).canAuthenticate() == BIOMETRIC_SUCCESS
     } catch (e: InvalidAlgorithmParameterException) {
         // expected error if user isn't enrolled in secure biometrics
